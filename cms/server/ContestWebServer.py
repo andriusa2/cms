@@ -68,7 +68,7 @@ from werkzeug.datastructures import LanguageAccept
 from cms import SOURCE_EXT_TO_LANGUAGE_MAP, config, ServiceCoord
 from cms.io import WebService
 from cms.db import Session, Contest, User, Task, Question, Submission, Token, \
-    File, UserTest, UserTestFile, UserTestManager
+    File, UserTest, UserTestFile, UserTestManager, District
 from cms.db.filecacher import FileCacher
 from cms.grading.tasktypes import get_task_type
 from cms.grading.scoretypes import get_score_type
@@ -528,6 +528,11 @@ class RegisterHandler(BaseHandler):
 
     email_re = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
+    def render_params(self):
+        params = super(RegisterHandler, self).render_params()
+        params["district_list"] = self.sql_session.query(District).all()
+        return params
+
     def get(self):
         if not self.contest.allow_registration:
             raise tornado.web.HTTPError(404)
@@ -540,6 +545,8 @@ class RegisterHandler(BaseHandler):
         first_name = self.get_argument("first_name", "")
         last_name = self.get_argument("last_name", "")
         email = self.get_argument("email", "")
+        role = self.get_argument("role", "")
+        district_id = self.get_argument("district", "")
         city = self.get_argument("city", "")
         school = self.get_argument("school", "")
         grade = self.get_argument("grade", None)
@@ -552,7 +559,19 @@ class RegisterHandler(BaseHandler):
         if not email or not self.email_re.match(email):
             errors.append("email")
 
-        if self.contest.require_school_details:
+        if self.contest.require_school_details and not role:
+            errors.append("role")
+
+        if self.contest.require_school_details and role == "student":
+            try:
+                district_id = int(district_id)
+            except ValueError:
+                errors.append("district")
+                district = None
+            else:
+                district = District.get_from_id(district_id, self.sql_session)
+                if district is None:
+                    errors.append("district")
             if not city:
                 errors.append("city")
             if not school:
@@ -562,8 +581,17 @@ class RegisterHandler(BaseHandler):
             except ValueError:
                 errors.append("grade")
             else:
-                if not 1 <= grade <= 12:
-                    errors.append("grade")
+                if self.contest.allowed_grades:
+                    if grade not in self.contest.allowed_grades:
+                        errors.append("grade")
+                else:
+                    if not 1 <= grade <= 12:
+                        errors.append("grade")
+        else:
+            district = None
+            city = ""
+            school = ""
+            grade = None
 
         if errors:
             self.render("register.html", errors=errors, new_user=None, **self.r_params)
@@ -582,7 +610,7 @@ class RegisterHandler(BaseHandler):
 
         user = User(first_name=first_name, last_name=last_name, email=email,
                     username=username, password=password, contest=self.contest,
-                    city=city, school=school, grade=grade)
+                    district=district, city=city, school=school, grade=grade)
         self.sql_session.add(user)
         self.sql_session.commit()
 
@@ -905,9 +933,15 @@ class QuestionHandler(BaseHandler):
         if not config.allow_questions:
             raise tornado.web.HTTPError(404)
 
-        question = Question(self.timestamp,
-                            self.get_argument("question_subject", ""),
-                            self.get_argument("question_text", ""),
+        subject = self.get_argument("question_subject", "")
+        text = self.get_argument("question_text", "")
+
+        # Skip blank questions
+        if not subject and not text:
+            self.redirect("/communication")
+            return
+
+        question = Question(self.timestamp, subject, text,
                             user=self.current_user)
         self.sql_session.add(question)
         self.sql_session.commit()
