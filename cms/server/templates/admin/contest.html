@@ -5,6 +5,14 @@
   <h1>Contest information</h1>
 </div>
 
+{% if len(config.contest_listen_port) > 0 %}
+  {% set ratio = round(len(contest.users) * 1.0 / len(config.contest_listen_port), 2) %}
+  {% if ratio >= 40 %}
+    At the moment, you have {{ ratio }} users for each ContestWebServer, on average.<br/>
+    A CWS can handle 40 simultaneous request. This situation might cause many requests to fail.
+  {% end %}
+{% end %}
+
 <!-- We use "multipart/form-data" to have Tornado distinguish between missing and empty values. -->
 <form enctype="multipart/form-data" action="{{ url_root }}/contest/{{ contest.id }}" method="POST" name="edit_contest">
   <table class="sub_table">
@@ -111,8 +119,20 @@
       <td><input type="checkbox" name="require_school_details" {% if contest.require_school_details %}checked{% end %}></td>
     </tr>
     <tr>
+      <td>Require country name for registration</td>
+      <td><input type="checkbox" name="require_country" {% if contest.require_country %}checked{% end %}></td>
+    </tr>
+    <tr>
       <td>Allowed grades (list of integers, leave empty for 1-12)</td>
       <td><input type="text" name="allowed_grades" value="{{ ",".join(map(str, contest.allowed_grades)) }}"/></td>
+    </tr>
+    <tr>
+      <td>Registration email subject</td>
+      <td><input type="text" name="registration_email_subject" value="{{ contest.registration_email_subject }}"></td>
+    </tr>
+    <tr>
+      <td>Registration email body (use placeholders {username} and {password})</td>
+      <td><textarea name="registration_email_body">{{ contest.registration_email_body }}</textarea></td>
     </tr>
     <tr>
       <td>Attachments</td>

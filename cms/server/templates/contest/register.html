@@ -25,7 +25,14 @@ $(document).ready(function () {
 {% if new_user %}
     <div class="login_box hero-unit">
         <h2>{{ _("Registration successful") }}</h2>
-        <p>{{ _("Here are your login details. Please write them down.") }}</p>
+        <p>
+            {{ _("Here are your login details.") }}
+    {% if email_sent %}
+            {{ _("They have been sent to your email.") }}
+    {% else %}
+            {{ _("Please write them down.") }}
+    {% end %}
+        </p>
         <div class="form-horizontal">
             <div class="control-group" style="margin-bottom:0">
                 <span class="control-label">{{ _("Username") }}</span>
@@ -70,6 +77,14 @@ $(document).ready(function () {
                         <input type="email" class="input-xlarge" name="email" value="{{ handler.get_argument("email", "") }}">
                     </div>
                 </div>
+    {% if contest.require_country %}
+                <div class="control-group {% if errors and "country" in errors %} error{% end %}">
+                    <label class="control-label" for="country">{{ _("Country") }}</label>
+                    <div class="controls">
+                        <input type="text" class="input-xlarge" name="country" value="{{ handler.get_argument("country", "") }}">
+                    </div>
+                </div>
+    {% end %}
     {% if contest.require_school_details %}
                 <div class="control-group">
                     <div class="controls">

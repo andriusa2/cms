@@ -212,12 +212,29 @@ class Contest(Base):
         nullable=False,
         default=False)
 
+    # Should registration ask for country name.
+    require_country = Column(
+        Boolean,
+        nullable=False,
+        default=False)
+
     # Allowed grades in registration. Useful only if allow_registration
     # and require_school_details are True.
     allowed_grades = Column(
         RepeatedInteger(),
         nullable=False,
         default=[])
+
+    # Registration email template. If any of these is empty, email is not sent.
+    registration_email_subject = Column(
+        Unicode,
+        nullable=False,
+        default="")
+    registration_email_body = Column(
+        Unicode,
+        nullable=False,
+        default="")
+
 
     # Follows the description of the fields automatically added by
     # SQLAlchemy.
