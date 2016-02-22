@@ -1123,6 +1123,8 @@ class EvaluationService(TriggeredService):
         return (bool): True if pushed, False if not.
 
         """
+        if extra is None:
+            extra = {}
         if self.operation_busy(operation):
             return False
         elif check_again and not operation.check(**extra):
@@ -1245,10 +1247,21 @@ class EvaluationService(TriggeredService):
                 user_test_result = UserTestResult.get_from_id(
                     (object_id, dataset_id), session)
                 if user_test_result is None:
-                    logger.error("[action_finished] Couldn't find "
-                                 "user test %d(%d) in the database.",
-                                 object_id, dataset_id)
-                    return
+                    logger.info("[action_finished] Couldn't find "
+                                "user test %d(%d) in the database. "
+                                "Creating it.", object_id, dataset_id)
+                    user_test = UserTest.get_from_id(object_id, session)
+                    dataset = Dataset.get_from_id(dataset_id, session)
+                    if user_test is None:
+                        logger.error("[action_finished] Could not find "
+                                     "user test %d in the database.",
+                                     object_id)
+                        return
+                    if dataset is None:
+                        logger.error("[action_finished] Could not find "
+                                     "dataset %d in the database.", dataset_id)
+                        return
+                    user_test_result = user_test.get_result_or_create(dataset)
 
                 user_test_result.compilation_tries += 1
 
@@ -1396,7 +1409,7 @@ class EvaluationService(TriggeredService):
         elif not user_test_result.compiled():
             logger.warning("Worker failed when compiling user test "
                            "%d(%d).",
-                           user_test_result.submission_id,
+                           user_test_result.user_test_id,
                            user_test_result.dataset_id)
             if user_test_result.compilation_tries >= \
                     EvaluationService.MAX_USER_TEST_COMPILATION_TRIES:

@@ -158,7 +158,9 @@ class ScoreTypeGroup(ScoreTypeAlone):
 {% from cms.grading import format_status_text %}
 {% from cms.server import format_size %}
 {% for st in details %}
-    {% if "score" in st and "max_score" in st %}
+    {% if "outcome" in st %}
+<div class="subtask {{ st["outcome"] }}">
+    {% elif "score" in st and "max_score" in st %}
         {% if st["score"] >= st["max_score"] %}
 <div class="subtask correct">
         {% elif st["score"] <= 0.0 %}
@@ -175,7 +177,7 @@ class ScoreTypeGroup(ScoreTypeAlone):
         </span>
     {% if "score" in st and "max_score" in st %}
         <span class="score">
-            {{ '%g' % round(st["score"], 2) }} / {{ st["max_score"] }}
+            {{ '%g' % round(st["score"], 2) }} / {{ '%g' % st["max_score"] }}
         </span>
     {% else %}
         <span class="score">

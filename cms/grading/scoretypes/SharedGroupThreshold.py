@@ -74,11 +74,16 @@ class SharedGroupThreshold(ScoreTypeGroup):
         subtasks = []
         public_subtasks = []
         ranking_details = []
+        score_precision = submission_result.submission.task.score_precision
+        score = 0.0
+        public_score = 0.0
 
         for st_idx, parameter in enumerate(self.parameters):
-            st_score = self.reduce([float(evaluations[idx].outcome)
-                                    for idx in parameter[1]],
-                                   parameter) * parameter[0]
+            st_result = self.reduce([float(evaluations[idx].outcome)
+                                     for idx in parameter[1]],
+                                    parameter)
+            st_outcome = self.get_subtask_outcome(st_result)
+            st_score = st_result * parameter[0]
             st_public = all(self.public_testcases[idx]
                             for idx in parameter[1])
             tc_outcomes = dict((
@@ -103,24 +108,25 @@ class SharedGroupThreshold(ScoreTypeGroup):
                     public_testcases.append({"idx": idx})
             subtasks.append({
                 "idx": st_idx + 1,
-                "score": st_score,
-                "max_score": parameter[0],
+                "outcome": st_outcome,
+                "score": round(st_score, score_precision),
+                "max_score": round(parameter[0], score_precision),
                 "testcases": testcases,
                 })
+            score += st_score
             if st_public:
                 public_subtasks.append(subtasks[-1])
+                public_score += st_score
             else:
                 public_subtasks.append({
                     "idx": st_idx + 1,
                     "testcases": public_testcases,
                     })
 
-            ranking_details.append("%g" % round(st_score, 2))
+            ranking_details.append("%g" % round(st_score, score_precision))
 
-        score = sum(st["score"] for st in subtasks)
-        public_score = sum(st["score"]
-                           for st in public_subtasks
-                           if "score" in st)
+        score = round(score, score_precision)
+        public_score = round(public_score, score_precision)
 
         return score, json.dumps(subtasks), \
             public_score, json.dumps(public_subtasks), \
@@ -134,6 +140,14 @@ class SharedGroupThreshold(ScoreTypeGroup):
             return N_("Correct")
         else:
             return N_("Partially correct")
+
+    def get_subtask_outcome(self, outcome):
+        if outcome == 0:
+            return "notcorrect"
+        elif outcome >= 1.0:
+            return "correct"
+        else:
+            return "partiallycorrect"
 
     def reduce(self, outcomes, parameter):
         threshold = parameter[2]
