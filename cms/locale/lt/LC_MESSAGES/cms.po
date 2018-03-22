@@ -669,7 +669,7 @@ msgid "Programming languages and libraries"
 msgstr "Programavimo kalbos ir bibliotekos"
 
 msgid "Standard Template Library"
-msgstr "Standartinė šablonų biblioteka"
+msgstr "cppreference dokumentacija"
 
 msgid ""
 "The main Java class of the solution should have exactly the same name as the "
