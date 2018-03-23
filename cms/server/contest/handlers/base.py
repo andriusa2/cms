@@ -324,7 +324,12 @@ class BaseHandler(CommonRequestHandler):
         ret["printing_enabled"] = (config.printer is not None)
         ret["questions_enabled"] = self.contest.allow_questions
         ret["testing_enabled"] = self.contest.allow_user_tests
-
+        if self.current_user is not None:
+            username = self.current_user.user.username
+        else:
+            username = "N/A"
+        useragent = self.request.headers.get("User-Agent", "N/A")
+        logger.warning("User: {username}, UA: {useragent}".format(username=username, useragent=useragent))
         if self.current_user is not None:
             participation = self.current_user
 
