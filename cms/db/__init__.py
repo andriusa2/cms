@@ -93,7 +93,8 @@ __all__ = [
 version = 39
 
 engine = create_engine(config.database, echo=config.database_debug,
-                       pool_timeout=60, pool_recycle=120)
+                       pool_size=10, max_overflow=50, pool_timeout=30,
+                       pool_recycle=120)
 
 metadata = MetaData(engine)
 
