@@ -1,7 +1,7 @@
 build:
-	./prerequisites.py build --as-root
-	./setup.py build
+	python3 ./prerequisites.py build --as-root
+	python3 ./setup.py build
 
 install:
-	./prerequisites.py install --as-root
-	./setup.py install
+	python3 ./prerequisites.py install --as-root
+	python3 ./setup.py install
