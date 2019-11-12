@@ -153,6 +153,7 @@ class SchoolHandler(BaseHandler):
 
             self.get_string(attrs, "name", empty=None)
             self.get_string(attrs, "password")
+            self.get_string(attrs, "email", empty=None)
 
             assert attrs.get("name") is not None, "No school name specified."
 
@@ -193,6 +194,7 @@ class AddSchoolHandler(BaseHandler):
 
             self.get_string(attrs, "name", empty=None)
             self.get_string(attrs, "password")
+            self.get_string(attrs, "email", empty=None)
 
             assert attrs.get("name") is not None, "No school name specified."
 
@@ -243,6 +245,7 @@ class TeacherRegistrationsHandler(BaseHandler):
             'Email',
             'District',
             'School',
+            'School email',
             'Password',
         ]))
         writer.writerows([
@@ -250,9 +253,10 @@ class TeacherRegistrationsHandler(BaseHandler):
                 reg.timestamp.isoformat(' '),
                 reg.first_name,
                 reg.last_name,
-                reg.email,
+                reg.email if reg.email else '',
                 reg.district.name if reg.district else '',
                 reg.school.name if reg.school else '',
+                reg.school.email if reg.school and reg.school.email else '',
                 reg.school.password if reg.school else '',
             ])
             for reg in registrations
