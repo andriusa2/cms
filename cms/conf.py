@@ -171,6 +171,7 @@ class Config(object):
         self.teacher_allow_impersonate = False
         self.teacher_show_results = True
         self.teacher_allow_registration = False
+        self.teacher_registration_anonymous = False
         self.teacher_enable_participation_locations = False
         self.teacher_allow_contestant_leave = False
         self.teacher_show_task_statements = "never"  # "never", "after_start" or "always"
@@ -179,6 +180,7 @@ class Config(object):
         self.rankings = ["http://usern4me:passw0rd@localhost:8890/"]
         self.https_certfile = None
         self.ranking_contests = []
+        self.ranking_anonymized = []
 
         # PrintingService
         self.max_print_length = 10000000
